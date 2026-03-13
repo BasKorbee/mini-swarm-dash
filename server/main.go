@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"math"
+	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -205,7 +206,44 @@ func getLocalStats(cli *client.Client) (*NodeStats, error) {
 	return stats, nil
 }
 
+// gzipFileServer wraps http.FileServer to serve pre-compressed .gz files when
+// the client accepts gzip and a .gz sibling exists on disk.
+func gzipFileServer(dir string) http.Handler {
+	fs := http.FileServer(http.Dir(dir))
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			fs.ServeHTTP(w, r)
+			return
+		}
+		p := filepath.Join(dir, filepath.Clean("/"+r.URL.Path))
+		if _, err := os.Stat(p + ".gz"); err == nil {
+			r2 := r.Clone(r.Context())
+			r2.URL.Path += ".gz"
+			w.Header().Set("Content-Encoding", "gzip")
+			w.Header().Set("Vary", "Accept-Encoding")
+			// Strip Content-Type sniffing from the .gz extension
+			ext := filepath.Ext(p)
+			if ct := mime.TypeByExtension(ext); ct != "" {
+				w.Header().Set("Content-Type", ct)
+			}
+			fs.ServeHTTP(w, r2)
+			return
+		}
+		fs.ServeHTTP(w, r)
+	})
+}
+
 func main() {
+	// For easy local client development use fake data
+	if os.Getenv("MOCK") == "true" {
+		log.Println("Mock mode enabled — using fake swarm data")
+		registerMockHandlers()
+		http.Handle("/", gzipFileServer("client/dist"))
+		log.Println("Swarm dashboard running on :8080")
+		log.Fatal(http.ListenAndServe(":8080", nil))
+		return
+	}
+
 	// Connect to the local Docker socket (/var/run/docker.sock must be mounted)
 	cli, err := client.New(client.FromEnv)
 	if err != nil {
@@ -239,8 +277,8 @@ func main() {
 		result := make([]DashboardNode, len(nodes))
 
 		type indexedStats struct {
-			i    int
-			ns   *NodeStats
+			i  int
+			ns *NodeStats
 		}
 		ch := make(chan indexedStats, len(nodes))
 
@@ -283,8 +321,7 @@ func main() {
 	})
 
 	// Serve the static frontend from the public/ directory.
-	fs := http.FileServer(http.Dir("public"))
-	http.Handle("/", fs)
+	http.Handle("/", gzipFileServer("public"))
 
 	// Returns CPU and memory stats for all swarm containers running on this node.
 	// Called by peer nodes and directly by the browser during development.

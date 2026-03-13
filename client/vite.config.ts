@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
+import { compression } from "vite-plugin-compression2";
 import type { MinifyOptions } from 'terser';
 
 const terserOptions: MinifyOptions = {
@@ -16,7 +17,7 @@ const terserOptions: MinifyOptions = {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [svelte()],
+  plugins: [svelte(), compression()],
   build: {
     minify: 'terser',
     target: 'esnext',
