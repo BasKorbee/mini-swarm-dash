@@ -19,8 +19,8 @@ export function shortImage(image: string): string {
     return image.replace(/@sha256:[0-9a-f]+/, '');
 }
 
-export async function fetchJSON(url: string) {
+export async function fetchJSON<TData>(url: string) {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`${url} → ${res.status}`);
-    return res.json();
+    return res.json() as TData;
 }

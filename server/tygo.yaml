@@ -1,0 +1,9 @@
+packages:
+  - path: "mini-swarm-dash"
+    type_mappings:
+      time.Time: "string /* RFC3339 */"
+      null.String: "null | string"
+      null.Bool: "null | boolean"
+      uuid.UUID: "string /* uuid */"
+      uuid.NullUUID: "null | string /* uuid */"
+    output_path: "../client/src/lib/api/types.ts"

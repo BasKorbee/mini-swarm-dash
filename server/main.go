@@ -79,9 +79,30 @@ type ContainerStats struct {
 	MemLimit    int64   `json:"mem_limit"`
 }
 
+// NodeDetails holds the subset of swarm.Node fields used by the frontend.
+type NodeDetails struct {
+	ID          string  `json:"id"`
+	Hostname    string  `json:"hostname"`
+	State       string  `json:"state"`
+	Addr        string  `json:"addr"`
+	Role        string  `json:"role"`
+	IsLeader    bool    `json:"is_leader"`
+	NanoCPUs    int64   `json:"nano_cpus"`
+	MemoryBytes int64   `json:"memory_bytes"`
+}
+
+// ServiceSummary holds the subset of swarm.Service fields used by the frontend.
+type ServiceSummary struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Image    string `json:"image"`
+	IsGlobal bool   `json:"is_global"`
+	Replicas *uint64 `json:"replicas"`
+}
+
 // DashboardNode is the enriched node sent to the frontend
 type DashboardNode struct {
-	Details     swarm.Node       `json:"details"`
+	Details     NodeDetails      `json:"details"`
 	TempCelsius *float64         `json:"temp_celsius"`
 	Containers  []ContainerStats `json:"containers"`
 }
@@ -257,8 +278,23 @@ func main() {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		result := make([]ServiceSummary, len(services.Items))
+		for i, s := range services.Items {
+			result[i] = ServiceSummary{
+				ID:       s.ID,
+				Name:     s.Spec.Name,
+				Image:    s.Spec.TaskTemplate.ContainerSpec.Image,
+				IsGlobal: s.Spec.Mode.Global != nil,
+				Replicas: func() *uint64 {
+					if s.Spec.Mode.Replicated != nil {
+						return s.Spec.Mode.Replicated.Replicas
+					}
+					return nil
+				}(),
+			}
+		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(services.Items)
+		json.NewEncoder(w).Encode(result)
 	})
 
 	// Fans out to each node's /api/local-stats via its swarm IP, then returns
@@ -283,7 +319,17 @@ func main() {
 		ch := make(chan indexedStats, len(nodes))
 
 		for i, node := range nodes {
-			result[i] = DashboardNode{Details: node}
+			isLeader := node.ManagerStatus != nil && node.ManagerStatus.Leader
+			result[i] = DashboardNode{Details: NodeDetails{
+				ID:          node.ID,
+				Hostname:    node.Description.Hostname,
+				State:       string(node.Status.State),
+				Addr:        node.Status.Addr,
+				Role:        string(node.Spec.Role),
+				IsLeader:    isLeader,
+				NanoCPUs:    node.Description.Resources.NanoCPUs,
+				MemoryBytes: node.Description.Resources.MemoryBytes,
+			}}
 			if node.Status.State != swarm.NodeStateReady {
 				ch <- indexedStats{i: i}
 				continue
