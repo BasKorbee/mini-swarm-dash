@@ -50,7 +50,7 @@
 
 <header>
 	<h1>&#9783; Mini Swarm Dashboard</h1>
-	<div>
+	<div style="display:flex;justify-content:end;align-items:center;flex-wrap:wrap;gap:4px">
 		<span id="last-updated">Updated {lastUpdated} </span>
 		<select id="refresh-rate" bind:value={refreshRate} on:change={onRateChange}>
 			<option value={1}>1s</option>

@@ -122,6 +122,10 @@ section h2 {
 .node-name {
   font-weight: 600;
   font-size: 15px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .node-ip {
@@ -247,6 +251,7 @@ section h2 {
 /* Inner containers table */
 .containers-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   background: transparent;
   border: none;

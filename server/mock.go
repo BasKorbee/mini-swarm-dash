@@ -49,7 +49,7 @@ func mockNodes() []DashboardNode {
 			Details: swarm.Node{
 				ID: "node1",
 				Description: swarm.NodeDescription{
-					Hostname: "manager-1",
+					Hostname:  "manager-1",
 					Resources: swarm.Resources{NanoCPUs: 4000000000, MemoryBytes: 8 * 1024 * 1024 * 1024},
 				},
 				Status:        swarm.NodeStatus{State: swarm.NodeStateReady, Addr: "10.0.0.1"},
@@ -58,7 +58,7 @@ func mockNodes() []DashboardNode {
 			},
 			TempCelsius: &temp1,
 			Containers: []ContainerStats{
-				{ID: "c1a2b3", Name: "web.1.xyz", ServiceName: "web", CPUPercent: 12.4, MemUsage: 128 * 1024 * 1024, MemLimit: 512 * 1024 * 1024},
+				{ID: "c1a2b3", Name: "monitoring_mini-swarm-dash.7q4ru95wcljxkr3vh2l31ytof.ixfs6nco8paq25r393echzs5s", ServiceName: "monitoring_mini-swarm-dash", CPUPercent: 12.4, MemUsage: 128 * 1024 * 1024, MemLimit: 512 * 1024 * 1024},
 				{ID: "c4d5e6", Name: "api.1.abc", ServiceName: "api", CPUPercent: 5.1, MemUsage: 64 * 1024 * 1024, MemLimit: 256 * 1024 * 1024},
 			},
 		},
@@ -66,7 +66,7 @@ func mockNodes() []DashboardNode {
 			Details: swarm.Node{
 				ID: "node2",
 				Description: swarm.NodeDescription{
-					Hostname: "worker-1",
+					Hostname:  "worker-1",
 					Resources: swarm.Resources{NanoCPUs: 4000000000, MemoryBytes: 8 * 1024 * 1024 * 1024},
 				},
 				Status: swarm.NodeStatus{State: swarm.NodeStateReady, Addr: "10.0.0.2"},
@@ -82,7 +82,7 @@ func mockNodes() []DashboardNode {
 			Details: swarm.Node{
 				ID: "node3",
 				Description: swarm.NodeDescription{
-					Hostname: "worker-2",
+					Hostname:  "worker-2",
 					Resources: swarm.Resources{NanoCPUs: 2000000000, MemoryBytes: 4 * 1024 * 1024 * 1024},
 				},
 				Status: swarm.NodeStatus{State: swarm.NodeStateReady, Addr: "10.0.0.3"},

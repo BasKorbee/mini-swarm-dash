@@ -83,6 +83,12 @@
             {containers.length} container{containers.length !== 1 ? 's' : ''}
         </summary>
         <table class="containers-table">
+            <colgroup>
+                <col style="width:28%">
+                <col style="width:30%">
+                <col style="width:21%">
+                <col style="width:21%">
+            </colgroup>
             <thead>
                 <tr><th>Service</th><th>Container</th><th>CPU %</th><th>Memory</th></tr>
             </thead>
@@ -95,8 +101,8 @@
                         {@const memP = containerMemPct(c)}
                         {@const service = c.service_name ?? c.name?.split('.')[0] ?? '?'}
                         <tr>
-                            <td>{service}</td>
-                            <td style="color:var(--muted);font-size:12px">{c.name ?? '?'}</td>
+                            <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{service}">{service}</td>
+                            <td style="color:var(--muted);font-size:12px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{c.name ?? '?'}">{c.name ?? '?'}</td>
                             <td>
                                 <div class="inline-bar">
                                     <div class="bar-track">
