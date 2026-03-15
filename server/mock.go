@@ -1,3 +1,5 @@
+//go:build mock
+
 package main
 
 import (
@@ -78,17 +80,23 @@ func mockLocalStats() *NodeStats {
 	}
 }
 
-func registerMockHandlers() {
-	http.HandleFunc("/api/services", func(w http.ResponseWriter, r *http.Request) {
+func mockHandleServices() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(mockServices())
-	})
-	http.HandleFunc("/api/nodes", func(w http.ResponseWriter, r *http.Request) {
+	}
+}
+
+func mockHandleNodes() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(mockNodes())
-	})
-	http.HandleFunc("/api/local-stats", func(w http.ResponseWriter, r *http.Request) {
+	}
+}
+
+func mockHandleLocalStats() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(mockLocalStats())
-	})
+	}
 }
