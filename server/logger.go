@@ -7,7 +7,14 @@ import (
 	"time"
 )
 
-var logger = slog.New(slog.NewJSONHandler(os.Stderr, nil))
+func logLevel() slog.Level {
+	if os.Getenv("LOG_LEVEL") == "debug" {
+		return slog.LevelDebug
+	}
+	return slog.LevelInfo
+}
+
+var logger = slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel()}))
 
 // logMiddleware wraps an http.Handler and logs each request as a JSON line.
 func logMiddleware(next http.Handler) http.Handler {

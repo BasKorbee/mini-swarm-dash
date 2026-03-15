@@ -33,5 +33,6 @@ func readNodeTemp() *float64 {
 		return nil
 	}
 	avg := math.Round(sum/float64(count)*10) / 10
+	logger.Debug("read node temperature", "zones", count, "avg_celsius", avg)
 	return &avg
 }

@@ -18,6 +18,7 @@ func handleServices(cli *client.Client) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		logger.Debug("listed services", "count", len(services.Items))
 		result := make([]ServiceSummary, len(services.Items))
 		for i, s := range services.Items {
 			result[i] = toServiceSummary(s)
@@ -50,6 +51,7 @@ func handleNodes(cli *client.Client) http.HandlerFunc {
 		}
 
 		nodes := nodesResult.Items
+		logger.Debug("listed nodes", "count", len(nodes))
 		result := make([]DashboardNode, len(nodes))
 		for i, node := range nodes {
 			result[i] = DashboardNode{Details: toNodeDetails(node)}
@@ -88,16 +90,19 @@ func enrichNodesWithStats(nodes []swarm.Node, result []DashboardNode) []Dashboar
 
 	for i, node := range nodes {
 		if node.Status.State != swarm.NodeStateReady {
+			logger.Debug("skipping non-ready node", "node", node.Description.Hostname, "state", node.Status.State)
 			ch <- indexedStats{i: i}
 			continue
 		}
 		go func(i int, node swarm.Node) {
+			logger.Debug("fetching stats from node", "node", node.Description.Hostname, "addr", node.Status.Addr)
 			ns, err := fetchNodeStats(httpClient, node)
 			if err != nil {
 				logger.Warn("could not reach node", "node", node.Description.Hostname, "err", err)
 				ch <- indexedStats{i: i}
 				return
 			}
+			logger.Debug("got stats from node", "node", node.Description.Hostname, "containers", len(ns.Containers))
 			ch <- indexedStats{i: i, ns: ns}
 		}(i, node)
 	}

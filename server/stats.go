@@ -72,6 +72,7 @@ func getLocalStats(cli *client.Client) (*NodeStats, error) {
 	if err != nil {
 		return nil, err
 	}
+	logger.Debug("listed local swarm containers", "count", len(result.Items))
 
 	stats := &NodeStats{
 		NodeID:      info.Info.Swarm.NodeID,
@@ -88,8 +89,10 @@ func getLocalStats(cli *client.Client) (*NodeStats, error) {
 
 	for i, c := range result.Items {
 		go func(i int, c container.Summary) {
+			logger.Debug("fetching container stats", "id", c.ID[:12], "service", c.Labels["com.docker.swarm.service.name"])
 			resp, err := cli.ContainerStats(ctx, c.ID, client.ContainerStatsOptions{})
 			if err != nil {
+				logger.Debug("container stats error", "id", c.ID[:12], "err", err)
 				ch <- indexedContainer{i: i}
 				return
 			}
@@ -97,6 +100,7 @@ func getLocalStats(cli *client.Client) (*NodeStats, error) {
 			err = json.NewDecoder(resp.Body).Decode(&s)
 			resp.Body.Close()
 			if err != nil {
+				logger.Debug("container stats decode error", "id", c.ID[:12], "err", err)
 				ch <- indexedContainer{i: i}
 				return
 			}
@@ -105,18 +109,16 @@ func getLocalStats(cli *client.Client) (*NodeStats, error) {
 			if len(c.Names) > 0 {
 				name = strings.TrimPrefix(c.Names[0], "/")
 			}
-			ch <- indexedContainer{
-				i: i,
-				cs: ContainerStats{
-					ID:          c.ID,
-					Name:        name,
-					ServiceName: c.Labels["com.docker.swarm.service.name"],
-					CPUPercent:  calcCPUPercent(c.ID, &s),
-					MemUsage:    calcMemUsage(&s),
-					MemLimit:    int64(s.MemoryStats.Limit),
-				},
-				ok: true,
+			cs := ContainerStats{
+				ID:          c.ID,
+				Name:        name,
+				ServiceName: c.Labels["com.docker.swarm.service.name"],
+				CPUPercent:  calcCPUPercent(c.ID, &s),
+				MemUsage:    calcMemUsage(&s),
+				MemLimit:    int64(s.MemoryStats.Limit),
 			}
+			logger.Debug("container stats collected", "name", cs.Name, "cpu_pct", cs.CPUPercent, "mem_usage", cs.MemUsage, "mem_limit", cs.MemLimit)
+			ch <- indexedContainer{i: i, cs: cs, ok: true}
 		}(i, c)
 	}
 
