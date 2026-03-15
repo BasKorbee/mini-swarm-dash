@@ -15,6 +15,5 @@ func main() {
 	http.HandleFunc("/api/local-stats", mockHandleLocalStats())
 	http.Handle("/", gzipFileServer("client/dist"))
 
-	log.Println("Swarm dashboard running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	listenAndServe(getPort())
 }

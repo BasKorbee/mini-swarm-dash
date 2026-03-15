@@ -57,29 +57,21 @@ Open `http://<any-swarm-node>:8080` in your browser.
 
 ### Local development
 
-**Backend:**
-```bash
-cd server
-go run main.go
-# Listens on :8080, requires Docker socket access
-```
-
-**Frontend (dev server with hot reload):**
+**Frontend:**
 ```bash
 cd client
 pnpm install
-pnpm dev
-# Proxies /api to localhost:8080
-```
-
-**Frontend (production build):**
-```bash
-cd client
 pnpm build
-# Output goes to client/dist/, served by the Go server from /public
 ```
 
-## Requirements
+**Backend:**
+```bash
+cd server
+go run -tags=mock .
+# Listens on :8080, serves mock data and frontend from client/dist instead of public
+```
+
+## Requirements (production)
 
 - Docker Swarm cluster (single-node works too)
 - `/var/run/docker.sock` mounted into the container
