@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 )
@@ -15,6 +14,9 @@ func getPort() string {
 }
 
 func listenAndServe(port string) {
-	log.Println("Dashboard running on :" + port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	logger.Info("dashboard starting", "port", port)
+	if err := http.ListenAndServe(":"+port, logMiddleware(http.DefaultServeMux)); err != nil {
+		logger.Error("server failed", "err", err)
+		os.Exit(1)
+	}
 }

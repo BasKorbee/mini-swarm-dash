@@ -3,12 +3,11 @@
 package main
 
 import (
-	"log"
 	"net/http"
 )
 
 func main() {
-	log.Println("Mock mode enabled — using fake swarm data")
+	logger.Info("mock mode enabled — using fake swarm data")
 
 	http.HandleFunc("/api/services", mockHandleServices())
 	http.HandleFunc("/api/nodes", mockHandleNodes())

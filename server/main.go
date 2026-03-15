@@ -3,7 +3,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/moby/moby/client"
@@ -13,7 +12,8 @@ func main() {
 	// Connect to the local Docker socket (/var/run/docker.sock must be mounted)
 	cli, err := client.New(client.FromEnv)
 	if err != nil {
-		log.Fatal("Error creating Docker client:", err)
+		logger.Error("failed to create Docker client", "err", err)
+		return
 	}
 
 	http.HandleFunc("/api/services", handleServices(cli))

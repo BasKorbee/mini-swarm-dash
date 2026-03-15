@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -95,7 +94,7 @@ func enrichNodesWithStats(nodes []swarm.Node, result []DashboardNode) []Dashboar
 		go func(i int, node swarm.Node) {
 			ns, err := fetchNodeStats(httpClient, node)
 			if err != nil {
-				log.Printf("could not reach node %s: %v", node.Description.Hostname, err)
+				logger.Warn("could not reach node", "node", node.Description.Hostname, "err", err)
 				ch <- indexedStats{i: i}
 				return
 			}
@@ -124,7 +123,7 @@ func fetchNodeStats(httpClient *http.Client, node swarm.Node) (*NodeStats, error
 	resp.Body.Close()
 	var ns NodeStats
 	if err := json.Unmarshal(body, &ns); err != nil {
-		log.Printf("could not parse stats from node %s: %v", node.Description.Hostname, err)
+		logger.Warn("could not parse stats from node", "node", node.Description.Hostname, "err", err)
 		return nil, err
 	}
 	return &ns, nil
